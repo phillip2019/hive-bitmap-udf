@@ -32,8 +32,11 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspe
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorUtils;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * ToBitmap.
@@ -41,6 +44,7 @@ import java.io.IOException;
  */
 @Description(name = "to_bitmap", value = "_FUNC_(expr) - Returns an doris bitmap representation of a column.")
 public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
+    public static final Logger logger = LoggerFactory.getLogger(ToBitmapUDAF.class);
 
     @Override
     public GenericUDAFEvaluator getEvaluator(TypeInfo[] parameters)
@@ -52,8 +56,10 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
         return new GenericEvaluate();
     }
 
-    //The UDAF evaluator assumes that all rows it's evaluating have
-    //the same (desired) value.
+    /**
+     * The UDAF evaluator assumes that all rows it's evaluating have
+     * the same (desired) value.
+     **/
     public static class GenericEvaluate extends GenericUDAFEvaluator {
 
         // For PARTIAL1 and COMPLETE: ObjectInspectors for original data
@@ -101,10 +107,14 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
             assert (parameters.length == 1);
             Object p = parameters[0];
             if (p != null) {
-                BitmapAgg myagg = (BitmapAgg) agg;
+                BitmapAgg myAgg = (BitmapAgg) agg;
+                logger.info("source data type: {}", inputOI.getTypeName());
                 try {
-                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
-                    addBitmap(row, myagg);
+                    String rowString = PrimitiveObjectInspectorUtils.getString(p, inputOI);
+                    BigInteger number = new BigInteger(rowString.replaceAll("-", ""), 16);
+//                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
+//                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
+                    addBitmap(number, myAgg);
                 } catch (NumberFormatException e) {
                     throw new HiveException(e);
                 }
@@ -113,9 +123,9 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
 
         @Override
         public Object terminate(AggregationBuffer agg) {
-            BitmapAgg myagg = (BitmapAgg) agg;
+            BitmapAgg myAgg = (BitmapAgg) agg;
             try {
-                return BitmapUtil.serializeToBytes(myagg.bitmap);
+                return BitmapUtil.serializeToBytes(myAgg.bitmap);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -123,10 +133,10 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
 
         @Override
         public void merge(AggregationBuffer agg, Object partial) {
-            BitmapAgg myagg = (BitmapAgg) agg;
+            BitmapAgg myAgg = (BitmapAgg) agg;
             byte[] partialResult = this.internalMergeOI.getPrimitiveJavaObject(partial);
             try {
-                myagg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
+                myAgg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -139,6 +149,10 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
 
         private void addBitmap(long newRow, BitmapAgg myagg) {
             myagg.bitmap.add(newRow);
+        }
+
+        private void addBitmap(BigInteger newRow, BitmapAgg myagg) {
+            myagg.bitmap.add(newRow.longValueExact());
         }
     }
 }

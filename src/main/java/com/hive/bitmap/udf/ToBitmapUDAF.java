@@ -110,33 +110,13 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
                 BitmapAgg myAgg = (BitmapAgg) agg;
                 logger.info("source data type: {}", inputOI.getTypeName());
                 try {
-                    // 根据输入类型选择适当的处理方式
-                    if (inputOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
-                        // 处理字符串输入，假设是十六进制格式
-                        String rowString = PrimitiveObjectInspectorUtils.getString(p, inputOI);
-                        if (rowString.startsWith("0x") || rowString.startsWith("0X")) {
-                            rowString = rowString.substring(2);
-                        }
-                        try {
-                            // 尝试作为十六进制处理
-                            BigInteger number = new BigInteger(rowString.replaceAll("-", ""), 16);
-                            addBitmap(number, myAgg);
-                        } catch (NumberFormatException e) {
-                            // 如果不是有效的十六进制，尝试作为十进制处理
-                            try {
-                                long value = Long.parseLong(rowString);
-                                addBitmap(value, myAgg);
-                            } catch (NumberFormatException ex) {
-                                throw new HiveException("无法将输入值 '" + rowString + "' 转换为数字", ex);
-                            }
-                        }
-                    } else {
-                        // 对于数值类型，直接获取long值
-                        long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
-                        addBitmap(row, myAgg);
-                    }
+                    String rowString = PrimitiveObjectInspectorUtils.getString(p, inputOI);
+                    BigInteger number = new BigInteger(rowString.replaceAll("-", ""), 16);
+//                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
+//                    long row = PrimitiveObjectInspectorUtils.getLong(p, inputOI);
+                    addBitmap(number, myAgg);
                 } catch (NumberFormatException e) {
-                    throw new HiveException("输入值转换为数字时出错", e);
+                    throw new HiveException(e);
                 }
             }
         }
@@ -172,39 +152,7 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
         }
 
         private void addBitmap(BigInteger newRow, BitmapAgg myagg) {
-            // 检查是否超出long的范围
-            if (newRow.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0 ||
-                    newRow.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0) {
-                logger.warn("BigInteger值 {} 超出long范围，将被截断", newRow);
-                // 可以选择跳过、截断或者采取其他处理策略
-            }
-
-            // 将 BigInteger 转换成字符串
-            String stringValue = newRow.toString();
-
-            // 将字符串转换成 long 类型
-            long longValue = Long.parseLong(stringValue);
-            myagg.bitmap.add(longValue);
+            myagg.bitmap.add(newRow.longValueExact());
         }
-    }
-
-    public static void main(String[] args) {
-        // 创建一个 Roaring64Bitmap
-        Roaring64Bitmap bitmap = new Roaring64Bitmap();
-
-        // 将 BigInteger 类型塞入 Roaring64Bitmap 中
-        BigInteger bigInteger = new BigInteger("18a462abbc3cf-0e95bcb772f8c4-61251c4d-313664-18a462abbc5170".replaceAll("-", ""), 16);
-
-        // 将 BigInteger 转换成字符串
-        String stringValue = bigInteger.toString();
-
-        // 将字符串转换成 long 类型
-        long longValue = Long.parseLong(stringValue);
-
-        // 将 long 值塞入 Roaring64Bitmap 中
-        bitmap.add(longValue);
-
-        // 输出 Roaring64Bitmap
-        System.out.println(bitmap);
     }
 }

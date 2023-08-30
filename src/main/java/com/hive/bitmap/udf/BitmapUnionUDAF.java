@@ -100,10 +100,10 @@ public class BitmapUnionUDAF extends AbstractGenericUDAFResolver {
             assert (parameters.length == 1);
             Object p = parameters[0];
             if (p != null) {
-                BitmapAgg myagg = (BitmapAgg) agg;
+                BitmapAgg myAgg = (BitmapAgg) agg;
                 byte[] partialResult = this.inputOI.getPrimitiveJavaObject(parameters[0]);
                 try {
-                    myagg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
+                    myAgg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
                 } catch (IOException ioException) {
                     throw new HiveException(ioException);
                 }
@@ -112,9 +112,9 @@ public class BitmapUnionUDAF extends AbstractGenericUDAFResolver {
 
         @Override
         public Object terminate(AggregationBuffer agg) {
-            BitmapAgg myagg = (BitmapAgg) agg;
+            BitmapAgg myAgg = (BitmapAgg) agg;
             try {
-                return BitmapUtil.serializeToBytes(myagg.bitmap);
+                return BitmapUtil.serializeToBytes(myAgg.bitmap);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -122,10 +122,10 @@ public class BitmapUnionUDAF extends AbstractGenericUDAFResolver {
 
         @Override
         public void merge(AggregationBuffer agg, Object partial) {
-            BitmapAgg myagg = (BitmapAgg) agg;
+            BitmapAgg myAgg = (BitmapAgg) agg;
             byte[] partialResult = this.internalMergeOI.getPrimitiveJavaObject(partial);
             try {
-                myagg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
+                myAgg.bitmap.or(BitmapUtil.deserializeToBitmap(partialResult));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

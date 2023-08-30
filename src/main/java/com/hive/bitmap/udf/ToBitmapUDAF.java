@@ -152,7 +152,12 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
         }
 
         private void addBitmap(BigInteger newRow, BitmapAgg myagg) {
-            myagg.bitmap.add(newRow.longValueExact());
+            // 将 BigInteger 转换成字符串
+            String stringValue = newRow.toString();
+
+            // 将字符串转换成 long 类型
+            long longValue = Long.parseLong(stringValue);
+            myagg.bitmap.add(longValue);
         }
     }
 }

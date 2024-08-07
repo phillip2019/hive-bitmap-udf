@@ -74,11 +74,32 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
-
+           <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass></mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -86,12 +107,46 @@ under the License.
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <relocations>
+                            <shadeTestJar>false</shadeTestJar>
+                            <artifactSet>
+                                <!--<includes>
+                                    &lt;!&ndash;we include only kafka-clients which is used in
+                                    schema-registry-client (e.g. configuration classes). &ndash;&gt;
+                                    <include>org.apache.kafka:kafka-clients</include>
+                                    <include>com.fasterxml.jackson.core:*</include>
+                                    <include>org.apache.commons:commons-compress</include>
+                                </includes>-->
+                                <excludes>
+                                    <exclude>org.apache.flink:force-shading</exclude>
+                                    <exclude>com.google.code.findbugs:jsr305</exclude>
+                                    <exclude>org.slf4j:*</exclude>
+                                    <exclude>log4j:*</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <relocations  combine.children="append">
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>com.chinagoods.shaded.com.fasterxml.jackson</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>org.roaringbitmap</pattern>
-                                    <shadedPattern>org.bitmap.shade.roaringbitmap</shadedPattern>
+                                    <shadedPattern>org.shade.roaringbitmap</shadedPattern>
                                 </relocation>
                             </relocations>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <filters>
+                                <filter>
+                                    <!-- DO not copy the signatures in the META-INF folder.
+                                       Otherwise, this might cause SecurityExceptions when using the JAR. -->
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <!--zip -d learn_spark.jar META-INF/*.RSA META-INF/*.DSA META-INF/*.SF -->
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

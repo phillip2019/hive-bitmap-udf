@@ -18,7 +18,6 @@
 package com.hive.bitmap.udf;
 
 import com.hive.bitmap.common.BitmapUtil;
-import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import org.apache.hadoop.hive.ql.exec.Description;
@@ -28,27 +27,17 @@ import org.apache.hadoop.hive.ql.udf.generic.GenericUDF;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Description(name = "bitmap_xor", value = "a _FUNC_ b - Compute the symmetric union of two or more input bitmaps, return the new bitmap")
 public class BitmapXorUDF extends GenericUDF {
 
-    public static final Logger logger = LoggerFactory.getLogger(BitmapXorUDF.class);
-
     private transient BinaryObjectInspector inputOI0;
     private transient BinaryObjectInspector inputOI1;
 
     @Override
     public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-
-        if (arguments.length != 2) {
-            throw new UDFArgumentTypeException(arguments.length, "Exactly two argument is expected.");
-        }
-
-
         ObjectInspector input0 = arguments[0];
         ObjectInspector input1 = arguments[1];
         if (!(input0 instanceof BinaryObjectInspector) || !(input1 instanceof BinaryObjectInspector)) {
@@ -68,7 +57,6 @@ public class BitmapXorUDF extends GenericUDF {
         }
         byte[] inputBytes0 = this.inputOI0.getPrimitiveJavaObject(args[0].get());
         byte[] inputBytes1 = this.inputOI1.getPrimitiveJavaObject(args[1].get());
-
 
         try {
             Roaring64Bitmap bitmap0 = BitmapUtil.deserializeToBitmap(inputBytes0);

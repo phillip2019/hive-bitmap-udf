@@ -179,12 +179,13 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
                 // 可以选择跳过、截断或者采取其他处理策略
             }
 
-            // 将 BigInteger 转换成字符串
-            String stringValue = newRow.toString();
-
-            // 将字符串转换成 long 类型
-            long longValue = Long.parseLong(stringValue);
-            myagg.bitmap.add(longValue);
+            try {
+                long longValue = newRow.longValue(); // 使用longValue()方法而不是通过字符串转换
+                myagg.bitmap.add(longValue);
+            } catch (Exception e) {
+                logger.error("将BigInteger转换为long时出错: {}", e.getMessage());
+                // 可以选择忽略此错误或者采取其他处理策略
+            }
         }
     }
 

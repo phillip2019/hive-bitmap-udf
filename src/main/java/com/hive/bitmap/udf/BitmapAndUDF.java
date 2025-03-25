@@ -34,16 +34,14 @@ import java.io.IOException;
 
 @Description(name = "bitmap_and", value = "a _FUNC_ b - Compute intersection of two or more input bitmaps, return the new bitmap")
 public class BitmapAndUDF extends GenericUDF {
-    public static final Logger logger = LoggerFactory.getLogger(ToBitmapUDAF.class);
+    public static final Logger logger = LoggerFactory.getLogger(BitmapAndUDF.class);
 
     private transient BinaryObjectInspector inputOI0;
     private transient BinaryObjectInspector inputOI1;
 
     @Override
     public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-        if (arguments.length != 2) {
-            throw new UDFArgumentException("bitmap_and only takes 2 arguments");
-        }
+
         ObjectInspector input0 = arguments[0];
         ObjectInspector input1 = arguments[1];
         if (!(input0 instanceof BinaryObjectInspector) || !(input1 instanceof BinaryObjectInspector)) {

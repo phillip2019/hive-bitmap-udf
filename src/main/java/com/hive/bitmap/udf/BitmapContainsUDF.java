@@ -27,12 +27,16 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.PrimitiveObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.*;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
 
 @Description(name = "bitmap_contains")
 public class BitmapContainsUDF extends GenericUDF {
+    public static final Logger logger = LoggerFactory.getLogger(BitmapContainsUDF.class);
+
 
     private transient BinaryObjectInspector inputOI01;
     private transient PrimitiveObjectInspector inputOI02;

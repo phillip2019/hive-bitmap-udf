@@ -18,7 +18,6 @@
 package com.hive.bitmap.udf;
 
 import com.hive.bitmap.common.BitmapUtil;
-import org.apache.hadoop.hive.ql.exec.UDFArgumentTypeException;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 import org.apache.hadoop.hive.ql.exec.Description;
@@ -28,22 +27,23 @@ import org.apache.hadoop.hive.ql.udf.generic.GenericUDF;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Description(name = "bitmap_and", value = "a _FUNC_ b - Compute intersection of two or more input bitmaps, return the new bitmap")
 public class BitmapAndUDF extends GenericUDF {
+    public static final Logger logger = LoggerFactory.getLogger(ToBitmapUDAF.class);
 
     private transient BinaryObjectInspector inputOI0;
     private transient BinaryObjectInspector inputOI1;
 
     @Override
     public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-
         if (arguments.length != 2) {
-            throw new UDFArgumentTypeException(arguments.length, "Exactly two argument is expected.");
+            throw new UDFArgumentException("bitmap_and only takes 2 arguments");
         }
-
         ObjectInspector input0 = arguments[0];
         ObjectInspector input1 = arguments[1];
         if (!(input0 instanceof BinaryObjectInspector) || !(input1 instanceof BinaryObjectInspector)) {
@@ -58,7 +58,9 @@ public class BitmapAndUDF extends GenericUDF {
 
     @Override
     public Object evaluate(DeferredObject[]  args) throws HiveException {
-
+        if (args[0] == null || args[1] == null) {
+            return null;
+        }
         byte[] inputBytes0 = this.inputOI0.getPrimitiveJavaObject(args[0].get());
         byte[] inputBytes1 = this.inputOI1.getPrimitiveJavaObject(args[1].get());
 
@@ -68,7 +70,8 @@ public class BitmapAndUDF extends GenericUDF {
             bitmap0.and(bitmap1);
             return BitmapUtil.serializeToBytes(bitmap0);
         } catch (IOException ioException) {
-            ioException.printStackTrace();
+            // 使用日志记录异常，而不是打印到标准错误流
+            logger.error("执行bitmap_and操作时发生IO异常", ioException);
             throw new RuntimeException(ioException);
         }
     }

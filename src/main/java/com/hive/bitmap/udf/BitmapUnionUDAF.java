@@ -32,6 +32,8 @@ import java.io.IOException;
 
 import org.roaringbitmap.longlong.Roaring64Bitmap;
 import com.hive.bitmap.common.BitmapUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -40,6 +42,9 @@ import com.hive.bitmap.common.BitmapUtil;
  */
 @Description(name = "bitmap_union", value = "_FUNC_(expr) - Calculate the grouped bitmap union , Returns an doris bitmap representation of a column.")
 public class BitmapUnionUDAF extends AbstractGenericUDAFResolver {
+
+    public static final Logger logger = LoggerFactory.getLogger(BitmapUnionUDAF.class);
+
 
     @Override
     public GenericUDAFEvaluator getEvaluator(TypeInfo[] parameters)

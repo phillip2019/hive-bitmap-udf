@@ -28,12 +28,17 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 
 @Description(name = "bitmap_from_array")
 public class BitmapFromArrayUDF extends GenericUDF {
+
+    public static final Logger logger = LoggerFactory.getLogger(BitmapFromArrayUDF.class);
+
 
     private transient ListObjectInspector inputOI;
 

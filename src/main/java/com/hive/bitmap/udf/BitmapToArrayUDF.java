@@ -28,6 +28,8 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.BinaryObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ import java.util.List;
 
 @Description(name = "bitmap_to_array")
 public class BitmapToArrayUDF extends GenericUDF {
+    public static final Logger logger = LoggerFactory.getLogger(BitmapToArrayUDF.class);
+
 
     private transient BinaryObjectInspector inputOI;
 

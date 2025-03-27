@@ -23,9 +23,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.hive.bitmap.udf.ToBitmapUDAF;
 import org.roaringbitmap.longlong.Roaring64Bitmap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BitmapUtil {
+    public static final Logger logger = LoggerFactory.getLogger(BitmapUtil.class);
+
     public static byte[] serializeToBytes(Roaring64Bitmap bitmap) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(bos)) {
             bitmap.serialize(dos);
@@ -35,10 +40,20 @@ public class BitmapUtil {
     }
 
     public static Roaring64Bitmap deserializeToBitmap(byte[] bytes) throws IOException {
-        Roaring64Bitmap bitmapValue = new Roaring64Bitmap();
-        try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
-            bitmapValue.deserialize(in);
-            return bitmapValue;
+        if (bytes == null || bytes.length == 0) {
+            return new Roaring64Bitmap(); // 返回空位图而不是 null
+        }
+
+        try {
+            Roaring64Bitmap bitmapValue = new Roaring64Bitmap();
+            try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes))) {
+                bitmapValue.deserialize(in);
+                return bitmapValue;
+            }
+        } catch (Exception e) {
+            // 记录错误并返回空位图
+            logger.error("Error deserializing bitmap: {}", e.getMessage(), e);
+            return new Roaring64Bitmap();
         }
     }
 }

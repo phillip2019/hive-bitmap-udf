@@ -108,7 +108,6 @@ public class ToBitmapUDAF extends AbstractGenericUDAFResolver {
             Object p = parameters[0];
             if (p != null) {
                 BitmapAgg myAgg = (BitmapAgg) agg;
-                logger.info("source data type: {}", inputOI.getTypeName());
                 try {
                     // 根据输入类型选择适当的处理方式
                     if (inputOI.getPrimitiveCategory() == PrimitiveObjectInspector.PrimitiveCategory.STRING) {
